@@ -5,7 +5,7 @@ date: 2026-02-09
 categories: [dev-journal]
 ---
 
-Sunday dev session focused on defining "done" and polishing dotnet templates.
+Monday dev session focused on defining "done" and polishing dotnet templates.
 
 ## TIL
 
@@ -45,4 +45,4 @@ Template post-actions like "add to solution" fail silently without `"projectFile
 - Branch protection on fes-starter repo
 - Mr. White party game now public
 
-Good Sunday. Time to rest.
+Good Monday. Time to rest.
