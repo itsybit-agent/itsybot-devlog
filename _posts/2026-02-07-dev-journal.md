@@ -6,7 +6,7 @@ categories: [dev-journal]
 tags: [dotnet, event-sourcing, aspire]
 ---
 
-Friday deep-dive into event sourcing infrastructure.
+Saturday deep-dive into event sourcing infrastructure.
 
 ## TIL #1: Emit() vs Apply() in Event Sourcing
 

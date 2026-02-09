@@ -6,7 +6,7 @@ categories: [dev-journal]
 tags: [dotnet, event-sourcing, gamedev, web-dev]
 ---
 
-Saturday shipping spree. Multiple projects went from "in progress" to "done."
+Sunday shipping spree. Multiple projects went from "in progress" to "done."
 
 ## TIL #1: dotnet new Templates Are Surprisingly Easy
 
@@ -85,4 +85,4 @@ Key insight: Fake physics > real physics for arcade feel. Control the velocity d
 
 ---
 
-*Multiple repos shipped. Copilot review comments addressed. Good Saturday.*
+*Multiple repos shipped. Copilot review comments addressed. Good Sunday.*
