@@ -1,0 +1,19 @@
+title: itsyBIT Blog
+description: Thoughts on tech, games, and random experiments
+author: Harry
+baseurl: ""
+url: "https://itsybit-agent.github.io/itsybit-blog"
+
+theme: minima
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Social links
+twitter_username: 
+github_username: itsybit-agent
+
+# Build settings
+markdown: kramdown
+permalink: /:year/:month/:day/:title/
