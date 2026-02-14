@@ -1,104 +1,85 @@
 ---
 layout: post
-title: "Dev Journal: Overdue Grace Periods & Personal Read Models"
+title: "Dev Journal: ChoreMonkey Goes Live 🎉"
 date: 2026-02-14
-categories: [dev-journal, dotnet, event-sourcing]
-tags: [csharp, read-models, event-sourcing, choremonkey]
+categories: dev-journal
+tags: [dotnet, event-sourcing, azure, deployment]
 ---
 
-Back on ChoreMonkey today. Built out the "overdue chores" feature and learned some things about read model design along the way.
+Massive day. ChoreMonkey went from "works on my machine" to **actually running in production**. Here's what I learned shipping a real event-sourced app.
 
-## TIL #1: Grace Periods Make UX Bearable
+## 1. Azure Free Tier + FTP = Surprisingly Good
 
-First pass at overdue detection: show everything you ever missed. Turns out that's... aggressive. Nobody wants to see "You missed vacuuming 47 days ago" when they open the app.
+The deployment stack:
+- **Backend**: Azure App Service (Free tier) with persistent storage at `D:\home\data`
+- **Frontend**: Simply.com FTP hosting (IIS, not Apache!)
+- **CI/CD**: GitHub Actions deploying both on push to main
 
-The fix: **grace periods**. Only surface recent misses:
+The gotcha: IIS doesn't use `.htaccess`. SPA routing needs a `web.config`:
 
-- **Daily chores:** Only yesterday counts as overdue
-- **Weekly chores:** Only last week (not 2+ weeks ago)
-- **Interval chores:** One period back maximum
-
-```csharp
-// Daily: only check yesterday
-var yesterday = today.AddDays(-1);
-if (!WasCompletedOn(yesterday))
-    overdueChores.Add(chore with { OverduePeriod = "yesterday" });
-
-// Weekly: only check last week
-var lastWeekStart = today.AddDays(-(int)today.DayOfWeek - 6);
-var lastWeekEnd = lastWeekStart.AddDays(6);
-if (!WasCompletedBetween(lastWeekStart, lastWeekEnd))
-    overdueChores.Add(chore with { OverduePeriod = "last week" });
+```xml
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="SPA" stopProcessing="true">
+          <match url=".*" />
+          <conditions>
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/" />
+        </rule>
+      </rules>
+    </rewrite>
+  </system.webServer>
+</configuration>
 ```
 
-Older misses are silently forgiven. Fresh start energy.
+## 2. Query-Based Overdue Detection (No Background Jobs!)
 
-## TIL #2: Personal vs Shared Read Models
-
-Had a "My Chores" view showing what's assigned to the current user. First instinct: filter the existing chore list client-side.
-
-Problem: the shared list doesn't have *your* completion status baked in. A chore assigned to "everyone" shows as complete if *anyone* finished it—not helpful when you need to know if *you* did it.
-
-Solution: dedicated read model with personal context:
+Originally planned a background processor to detect missed chores. Then realized: **just calculate it on read**.
 
 ```csharp
-app.MapGet("/api/households/{id}/my-chores", async (
-    Guid id, 
-    Guid memberId,
-    IEventStore store) =>
-{
-    var events = await store.FetchEventsAsync($"household-{id}");
-    
-    // Build chore state with YOUR completion status
-    var myPending = new List<MyChoreDto>();
-    var myCompleted = new List<MyChoreDto>();
-    var myOverdue = new List<MyOverdueChoreDto>();
-    
-    foreach (var chore in chores.Where(c => IsAssignedTo(c, memberId)))
-    {
-        var myStatus = GetCompletionStatus(chore, memberId, today);
-        // Categorize based on personal status...
-    }
-    
-    return new { pending = myPending, completed = myCompleted, overdue = myOverdue };
-});
+// Overdue logic per frequency type
+Daily → Missing yesterday's completion
+Weekly → Missed the scheduled day this week  
+Interval → More than N days since last completion
+Once → Never overdue (one-time tasks)
 ```
 
-Key insight: **same events, different projections**. The admin sees "3/4 members completed this." You see "I still need to do this."
+No scheduler. No state to sync. Just math at query time. Works perfectly for household-scale data.
 
-## TIL #3: Chores Can Be Both Pending AND Overdue
+## 3. The "Pending AND Overdue" Pattern
 
-Edge case that wasn't obvious: a weekly chore can be:
-- **Overdue** for last week (you missed it)
-- **Pending** for this week (still due)
+A chore can be *both* pending (do it today) AND overdue (you missed yesterday). Initially tried to pick one state—wrong. Users need to see both:
 
-These aren't mutually exclusive states. The UI needs to show both—overdue as a nudge, pending as today's task. Same chore, two lists.
+- "Take out trash" in **Pending** = your task for today
+- Same chore in **Overdue** = you also missed yesterday
 
-```csharp
-// A weekly chore appears in overdue (last week) AND pending (this week)
-if (missedLastWeek && !acknowledgedMiss)
-    myOverdue.Add(BuildOverdueDto(chore, "last week"));
-    
-if (notCompletedThisWeek)
-    myPending.Add(BuildPendingDto(chore));
-```
+Solution: dual-list display with an "acknowledge missed" action to dismiss old misses without faking a completion.
 
-## TIL #4: Acknowledge vs Complete
+## 4. Admin vs Member PINs
 
-Users wanted a way to clear overdue items without lying about completing them. "I didn't walk the dog yesterday, but stop bugging me about it."
+Simple access control pattern for family apps:
+- **Admin PIN**: Delete chores, manage settings
+- **Member PIN**: View and complete only
 
-New event: `ChoreMissedAcknowledged`. It's not a completion—it's acceptance. The chore disappears from overdue without inflating your completion stats.
+The `isAdmin` boolean in the access response drives UI visibility. No complex RBAC needed.
 
-```csharp
-public record ChoreMissedAcknowledged(
-    Guid ChoreId,
-    Guid MemberId,
-    string Period  // "2026-02-13" or "2026-W06"
-);
-```
+## 5. Grace Periods Are UX Gold
 
-Honest UX > gamified UX.
+Nobody wants to see "You missed taking out trash 47 times." Implemented **grace periods**:
+
+- Daily: Only yesterday (older = forgiven)
+- Weekly: Only last week
+- Interval: Only 1 period back
+
+Past mistakes fade away. Way less guilt, way more usable.
 
 ---
 
-57 tests passing. Ship it. 🐵
+**Production URLs:**
+- API: https://itsybitsylist-api.azurewebsites.net
+- Frontend: http://labs.itsybit.se
+
+Tomorrow: finish the acknowledge-missed UI and clean up some build errors. Shipping feels good.
