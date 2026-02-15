@@ -115,32 +115,77 @@ else
 
 Old households still work. New activities are future-proof.
 
-## 4. Smart Status Marquee
+## 4. Smart Status Marquee (90s Nostalgia, Done Right)
 
-Small UX win: status text now **only scrolls when it overflows**. Short status? Static. Long status? Smooth scroll.
+Members can set a status message. Long messages should scroll like the `<marquee>` tag of old. Short ones should just... sit there.
+
+### The Gotcha: Refs and Conditional Rendering
+
+First attempt broke because I conditionally rendered different JSX based on `shouldScroll`. Problem: the measurement refs weren't attached when rendering the "short" version, so the effect couldn't measure anything.
+
+### The Fix: Same Structure, Different Styles
 
 ```tsx
 function StatusMarquee({ text }: { text: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
-  const [shouldScroll, setShouldScroll] = useState(false);
+  const [shouldScroll, setShouldScroll] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const containerWidth = containerRef.current?.offsetWidth ?? 0;
-    const textWidth = textRef.current?.scrollWidth ?? 0;
-    setShouldScroll(textWidth > containerWidth - 40);
+    const measure = () => {
+      if (containerRef.current && textRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const textWidth = textRef.current.offsetWidth;
+        setShouldScroll(textWidth > containerWidth - 32);
+      }
+    };
+    
+    // Measure immediately and after fonts load
+    measure();
+    const timer = setTimeout(measure, 100);
+    return () => clearTimeout(timer);
   }, [text]);
 
   return (
-    <div ref={containerRef} className="overflow-hidden">
-      <div className={shouldScroll ? "animate-marquee" : ""}>
-        <span ref={textRef}>💬 {text}</span>
-        {shouldScroll && <span className="px-8">💬 {text}</span>}
+    <div 
+      ref={containerRef}
+      className="py-2 bg-muted/50 rounded-md overflow-hidden"
+    >
+      <div className={`whitespace-nowrap ${shouldScroll ? 'animate-marquee' : 'px-4 text-center'}`}>
+        <span ref={textRef} className="text-sm text-muted-foreground">
+          💬 {text}
+        </span>
+        {shouldScroll && (
+          <span className="text-sm text-muted-foreground px-8">
+            💬 {text}
+          </span>
+        )}
       </div>
     </div>
   );
 }
 ```
+
+Key insights:
+1. **Always render the refs** — don't conditionally render different structures
+2. **`whitespace-nowrap`** — prevents text wrapping regardless of scroll state
+3. **Duplicate text for seamless loop** — only when scrolling
+4. **Measure twice** — once immediately, once after a delay for fonts/layout
+
+The CSS animation:
+```css
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 8s linear infinite;
+}
+```
+
+The `-50%` works because we duplicate the content. When it shifts halfway, it loops seamlessly.
 
 ## Key Takeaway: Automations in Event Sourcing
 
