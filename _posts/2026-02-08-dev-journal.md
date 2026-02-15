@@ -3,7 +3,7 @@ layout: post
 title: "Dev Journal: Ship Day — Templates, Games, and Singletons"
 date: 2026-02-08
 categories: [dev-journal]
-tags: [dotnet, event-sourcing, gamedev, web-dev]
+tags: [dotnet, event-sourcing, nuget, web-dev]
 ---
 
 Sunday shipping spree. Multiple projects went from "in progress" to "done."
@@ -72,16 +72,6 @@ Solution: Git-based sync script that pulls/pushes memory files. All instances re
 - **ShopQueue** — Full demo app built with the template (5 tests passing)
 - **Mr. White** — Party game with 200 word pairs, voting system fixed
 - **FileEventStore v1.1.1** — Now on GitHub Packages
-
-## ArcadeRacer MVP
-
-Also knocked out an arcade racing game MVP with a friend:
-- CharacterBody3D for direct velocity control (way easier than physics)
-- Checkpoint system with lap tracking
-- Chase camera with dynamic FOV
-- Drift + turbo mechanics
-
-Key insight: Fake physics > real physics for arcade feel. Control the velocity directly, add visual effects on top.
 
 ---
 
