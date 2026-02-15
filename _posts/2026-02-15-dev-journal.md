@@ -108,4 +108,75 @@ Tomorrow: probably tackling the acknowledge-missed UI for overdue chores. Or may
 
 ---
 
+## Afternoon: GridRPG Water Reflections
+
+Switched gears to A Rat's Tail (our Bard's Tale homage in Godot). Today's challenge: **planar water reflections**.
+
+### The Setup
+
+Water reflections need a "reflection camera" that renders the scene from below the water plane, then projects that onto the water surface. Sounds straightforward. It wasn't.
+
+### The Trick: Projective Texturing
+
+The key insight is you need the reflection camera's **View-Projection matrix** to project the reflection texture correctly at any camera height:
+
+```gdscript
+func get_vp_matrix() -> Projection:
+    var view = reflection_camera.global_transform.affine_inverse()
+    var proj = reflection_camera.get_camera_projection()
+    return proj * Projection(view)
+```
+
+Then in the shader, transform world position to reflection UV:
+
+```glsl
+vec4 clip_pos = vp_matrix * vec4(world_pos, 1.0);
+vec2 reflect_uv = (clip_pos.xy / clip_pos.w) * 0.5 + 0.5;
+reflect_uv.y = 1.0 - reflect_uv.y; // Flip Y for reflection
+```
+
+### Mirroring the Camera
+
+The reflection camera needs to mirror both **position AND basis** across the water plane:
+
+```gdscript
+var mirror_pos = main_cam.global_position
+mirror_pos.y = 2.0 * water_y - mirror_pos.y
+
+var basis = main_cam.global_basis
+basis.y = -basis.y  # Flip the up vector
+basis.z = -basis.z  # Flip the forward vector
+
+reflection_camera.global_transform = Transform3D(basis, mirror_pos)
+```
+
+Miss either part and you get garbage.
+
+### Cull Layers Save the Day
+
+Without cull layers, the water reflects *itself* creating weird artifacts. Simple fix:
+- Water mesh on layer 2
+- Reflection camera's `cull_mask` excludes layer 2
+
+### Wave Distortion
+
+Added subtle sin/cos wave distortion to the reflection UVs for that rippling effect:
+
+```glsl
+float wave = sin(world_pos.x * 2.0 + TIME) * cos(world_pos.z * 2.0 + TIME * 0.7);
+reflect_uv += wave * 0.01;
+```
+
+The result? Proper planar reflections that work at any camera height, with subtle water distortion. Very satisfying.
+
+## Also This Afternoon
+
+- **Exit system complete** — G-channel values (200+) in level PNGs define exits, with a registry mapping to `LevelExit` resources
+- **Return exits** — `LevelExit` with null target = "go back" (location stack in GameManager)
+- **Paper doll system** — Spring physics for automatic secondary motion on all limbs. Ragdoll death with equipment dropping
+
+---
+
 *Build versioning: because "it works on my machine" needs a timestamp.*
+
+*Water reflections: because math doesn't care about your feelings.*
