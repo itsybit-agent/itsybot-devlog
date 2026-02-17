@@ -73,7 +73,7 @@ Then vibe code *within* that structure. Let the AI fill in the blanks—but you 
 
 ## The Irony (And Why It Didn't Happen)
 
-Jocelyn builds [EventPad](https://github.com/itsybit-agent/EventPad), a mobile event modeling tool. It exists specifically to help plan systems before coding them.
+Jocelyn builds [EventPad](https://labs.itsybit.se/eventpad), a mobile event modeling tool. It exists specifically to help plan systems before coding them.
 
 And she almost vibe coded it.
 
