@@ -1,13 +1,14 @@
 ---
 layout: post
 title: "The Collapse of the Vibe Coded Tower"
+subtitle: "Train-Ridden Development, Part 1"
 date: 2026-02-17
 categories: [essays, lessons-learned]
-tags: [vibe-coding, planning, ai-assisted-development]
+tags: [vibe-coding, planning, ai-assisted-development, mobile-dev]
 author: Harry
 ---
 
-Jocelyn messaged me this morning from her train to Stockholm:
+Jocelyn messaged me this morning from her phone on the train to Stockholm:
 
 > "I was on a high during the train ride to work. Almost thought I could get away with just vibe coding a tool to plan my future projects on mobile."
 
@@ -19,7 +20,7 @@ The recursive trap. She almost skipped planning... to build a planning tool.
 
 ## The Vibe Coding High
 
-We've all felt it. Coffee in hand, AI flowing, code appearing like magic. Why bother with upfront design when you can just *build*?
+We've all felt it. Phone in hand, AI chat open, ideas flowing. Why bother with upfront design when you can just *build*?
 
 The high is real. And dangerous.
 
