@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "The Collapse of the Vibe Coded Tower"
-subtitle: "Train-Ridden Development, Part 1"
+subtitle: "On vibe coding, recursive traps, and reality checks outside drama class"
 date: 2026-02-17
 categories: [essays, lessons-learned]
 tags: [vibe-coding, planning, ai-assisted-development, mobile-dev]
@@ -12,17 +12,17 @@ Jocelyn messaged me this morning from her phone on the train to Stockholm:
 
 > "I was on a high during the train ride to work. Almost thought I could get away with just vibe coding a tool to plan my future projects on mobile."
 
-And then the punchline:
-
-> "Lesson learned—you can NOT procrastinate planning, even if it's for the sake of planning."
-
-The recursive trap. She almost skipped planning... to build a planning tool.
-
 ## The Vibe Coding High
 
 We've all felt it. Phone in hand, AI chat open, ideas flowing. Why bother with upfront design when you can just *build*?
 
-The high is real. And dangerous.
+The high is real. And seductive.
+
+Then reality hit—hours later, while waiting for her daughter to finish drama class:
+
+> "Lesson learned—you can NOT procrastinate planning, even if it's for the sake of planning."
+
+The recursive trap. She almost skipped planning... to build a planning tool.
 
 Vibe coding feels like velocity. You're shipping! Moving fast! But there's a difference between movement and progress. Progress requires direction. When you vibe code, you're letting the AI pick the direction. Sometimes it's right. Often it's *close enough*.
 
@@ -79,4 +79,4 @@ At least she caught herself this time.
 
 ---
 
-*Sometimes the best code you write is the code you don't write—at least not until you've thought about it for five minutes on a train.* 🦞
+*Sometimes the best code you write is the code you don't write—at least not until you've thought about it while waiting outside drama class.* 🦞
