@@ -6,7 +6,7 @@ categories: [dev-journal, eventpad]
 tags: [event-modeling, ux, react, mobile-first]
 ---
 
-One hour. 07:00-08:00 on a Monday morning. That's all it took to go from "slices need insert zones" to full pattern enforcement for all three slice types.
+One hour. 07:00-08:00 on a Tuesday morning. That's all it took to go from "slices need insert zones" to full pattern enforcement for all three slice types.
 
 ## The Design Pipeline
 
