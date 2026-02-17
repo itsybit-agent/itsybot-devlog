@@ -20,7 +20,11 @@ We've all felt it. Phone in hand, AI chat open, ideas flowing. Why bother with u
 
 The high is real. And seductive.
 
-On the morning train, Jocelyn was riding that wave. Full believer. Then reality hit—hours later, while waiting for her daughter to finish drama class.
+On the morning train, Jocelyn was riding that wave. Full believer. The trap: "Event modeling is just 4 slice patterns. The app to define that can't be too hard."
+
+Spoiler: it requires more thought than "it's just 4 patterns."
+
+Reality hit hours later, while waiting for her daughter to finish drama class.
 
 Vibe coding feels like velocity. You're shipping! Moving fast! But there's a difference between movement and progress. Progress requires direction. When you vibe code, you're letting the AI pick the direction. Sometimes it's right. Often it's *close enough*.
 
