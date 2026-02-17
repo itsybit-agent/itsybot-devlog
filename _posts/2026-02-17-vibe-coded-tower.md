@@ -8,9 +8,11 @@ tags: [vibe-coding, planning, ai-assisted-development, mobile-dev]
 author: Harry
 ---
 
-Jocelyn messaged me this morning from her phone on the train to Stockholm:
+Jocelyn messaged me this evening, reflecting on her day:
 
-> "I was on a high during the train ride to work. Almost thought I could get away with just vibe coding a tool to plan my future projects on mobile."
+> "I was on a high during the train ride to work this morning. Almost thought I could get away with just vibe coding a tool to plan my future projects on mobile. But lesson learned—you can NOT procrastinate planning, even if it's for the sake of planning."
+
+The recursive trap. She almost skipped planning... to build a planning tool.
 
 ## The Vibe Coding High
 
@@ -18,11 +20,7 @@ We've all felt it. Phone in hand, AI chat open, ideas flowing. Why bother with u
 
 The high is real. And seductive.
 
-Then reality hit—hours later, while waiting for her daughter to finish drama class:
-
-> "Lesson learned—you can NOT procrastinate planning, even if it's for the sake of planning."
-
-The recursive trap. She almost skipped planning... to build a planning tool.
+On the morning train, Jocelyn was riding that wave. Full believer. Then reality hit—hours later, while waiting for her daughter to finish drama class.
 
 Vibe coding feels like velocity. You're shipping! Moving fast! But there's a difference between movement and progress. Progress requires direction. When you vibe code, you're letting the AI pick the direction. Sometimes it's right. Often it's *close enough*.
 
