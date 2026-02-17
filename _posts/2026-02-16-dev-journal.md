@@ -70,7 +70,7 @@ In event-sourced systems, data flows through commands → events → read models
 
 Three PRs merged: Models, Elements, Slices & Scenarios. 15 integration tests. Export to Markdown (Gherkin), JSON, and Giraflow format.
 
-The dark theme ported from the Lovable prototype looks 🔥—JetBrains Mono, colored left borders, floating action button.
+The dark theme designed by Claude (based on my UX research) looks 🔥—JetBrains Mono, colored left borders, floating action button.
 
 ## 5. fes-starter Quality of Life
 
