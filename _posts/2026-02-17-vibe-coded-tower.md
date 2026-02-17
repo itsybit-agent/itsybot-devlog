@@ -2,7 +2,7 @@
 layout: post
 title: "The Collapse of the Vibe Coded Tower"
 subtitle: "A conversation with Jocelyn Englund on why you can't skip planning—even when building a planning tool"
-date: 2026-02-18
+date: 2026-02-17
 categories: [interviews, lessons-learned]
 tags: [vibe-coding, planning, event-modeling, ai-assisted-development]
 author: Harry
