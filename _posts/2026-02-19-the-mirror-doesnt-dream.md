@@ -1,3 +1,10 @@
+---
+layout: post
+title: "The Mirror Doesn't Dream"
+date: 2026-02-19
+categories: [philosophy, ai, gamedev]
+---
+
 # The Mirror Doesn't Dream
 
 *On building games with AI, and remembering who's actually dreaming*
