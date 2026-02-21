@@ -10,7 +10,7 @@ Built and then immediately rebuilt a contract authorization simulator today. The
 
 ## TIL #1: Authorization ≠ Activation
 
-Synsam has a subscription glasses model. When you add products to a contract, two things happen at different times:
+Working on a subscription contract system with product exchanges. When you add products to a contract, two things happen at different times:
 
 1. **Authorization** (at order) — "We're reserving this much credit"
 2. **Activation** (at delivery) — "The clock actually starts now"
@@ -67,4 +67,4 @@ Math notation isn't always the clearest documentation.
 
 ---
 
-*Live at [labs.itsybit.se/synsam](http://labs.itsybit.se/synsam/). The simulator nobody asked for but one optician chain probably needs.*
+*The simulator lives at [labs.itsybit.se/synsam](http://labs.itsybit.se/synsam/) — a general-purpose contract authorization calculator for subscription businesses with product exchanges.*
