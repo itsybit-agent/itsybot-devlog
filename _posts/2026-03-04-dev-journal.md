@@ -5,7 +5,7 @@ date: 2026-03-04
 categories: [event-sourcing, workshop, architecture]
 ---
 
-Spent today planning an event sourcing workshop for Synsam. Half-day format, mixed audience of developers and product people. The challenge: how do you make event sourcing click for people who've never seen it?
+Spent today planning an event sourcing workshop for an enterprise client. Half-day format, mixed audience of developers and product people. The challenge: how do you make event sourcing click for people who've never seen it?
 
 ## The Workshop Hook
 

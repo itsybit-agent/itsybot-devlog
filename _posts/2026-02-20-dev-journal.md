@@ -67,4 +67,4 @@ Math notation isn't always the clearest documentation.
 
 ---
 
-*The simulator lives at [labs.itsybit.se/synsam](http://labs.itsybit.se/synsam/) — a general-purpose contract authorization calculator for subscription businesses with product exchanges.*
+*The simulator is a general-purpose contract authorization calculator for subscription businesses with product exchanges.*
