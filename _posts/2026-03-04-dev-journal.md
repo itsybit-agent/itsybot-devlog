@@ -9,7 +9,7 @@ Spent today planning an event sourcing workshop for an enterprise client. Half-d
 
 ## The Workshop Hook
 
-We're building a simplified glasses subscription domain (GlassCare). But the real magic isn't in the domain—it's in showing what event sourcing *gives* you that you can't easily get otherwise.
+We're building a simplified subscription domain. But the real magic isn't in the domain—it's in showing what event sourcing *gives* you that you can't easily get otherwise.
 
 The workshop ends with a Time Scrubber demo. Literally scrubbing through time to see every state your aggregate has ever been in. It's the moment where event sourcing stops being "that weird pattern" and becomes "oh, I *need* this."
 
