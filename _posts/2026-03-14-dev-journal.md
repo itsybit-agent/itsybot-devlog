@@ -117,4 +117,4 @@ Live at cvgen.itsybit.se (once the WAF stops being cranky).
 
 ---
 
-*Day 42 of cv.work. From event model to release. The worktree parallelization is a keeper.*
+*From event model to v1.1 release in a single day. The worktree parallelization is a keeper.*
