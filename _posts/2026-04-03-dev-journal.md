@@ -1,68 +1,87 @@
 ---
 layout: post
-title: "Vertical Slices All The Way Down"
+title: "ChoreMonkey Refactor Complete, EventPad Features, Cratered-2 Progress"
 date: 2026-04-03
-tags: [dev-journal, chorus, eventpad, choremonkey, event-sourcing, security]
+tags: [choremonkey, eventpad, cratered-2, refactoring, architecture]
 ---
 
-A very full Friday. Three projects got significant attention, a security patch landed mid-session, and we ended up rebuilding how Chorus handles admin settings from scratch.
+A massive day of shipping across multiple projects. Harry worked on ChoreMonkey's component architecture while Jocelyn built a Wayland keyboard shortcut visualizer. Fredde made serious progress on Cratered-2's rendering and terrain generation.
 
-## 1. EventPad — Minimalist Slice Rendering
+## ChoreMonkey — Full Refactor to Tab Architecture
 
-EventPad got a visual overhaul to match how slices are supposed to *feel*: minimal, typed by color, structured by contract.
+Harry completed all five refactoring steps on the household dashboard, reducing it from 493 to 185 lines. The component was a god-component holding chores, team, activity, and admin in one file. Now it's split into proper vertical slices:
 
-**The rule:** every SV and SC slice has a screen at the top. It's the entry point. Always. If a screen isn't connected yet, a placeholder shows at the top with a `+ Add screen` tap target. The screen is not optional — it's the anchor.
+- Extracted `useHouseholdData` and `useHouseholdActions` hooks
+- Broke out `ChoresTab`, `TeamTab`, `ActivityTab` components
+- Admin is now a proper route (`/household/:id/admin`) with PIN gate and bottom tab bar
+- Settings sheet moved to Admin tab
 
-**Element rendering changed:** out went the `COMMAND / EVENT / READ MODEL` type badges. In came a small color dot. The color *is* the type. Less noise, more signal.
+**Shipped features:**
+- `ClosePeriod` API: computes period server-side, rejects future periods, accepts specific past periods
+- Period selector dropdown with ✓ markers for closed periods, view payslips inline
+- `UpdateChore` command: edit chore name/description/frequency from the admin panel
+- Household chore cooldown: shared chores show done once one person completes
+- Payday configurator in Admin → Settings tab
+- Salary multipliers pre-fill from previous values
+- iOS safe area padding on the new tab bar
 
-**AU slices** got the same treatment inside their SV/SC panels. Context readModels (additional SV inputs to a processor, connected via `context` relation) now render as chips above the gear symbol.
+The repo is now public on GitHub. Repo cleanup: removed 4 stale duplicates and hardcoded tokens.
 
-**Burger menu:** Undo, Export, Import, Events log, and Clear all moved behind a `☰`. Only the View/Edit toggle stays in the header. Four buttons became one.
+## EventPad — Read Model Picker and AU Redesign
 
-The bug that bit us: a stale `document.querySelector('.header-btn:last-child').onclick = clearAll` binding from before the burger refactor was latching onto the wrong element and calling `clearAll` on every page load, wiping the event stream silently. Classic DOM selector rot.
+Jocelyn iterated on the event modeling mockup. The "Who produces this?" picker on read models is now unified: create new events at the top, existing events listed below. New events from read models are floating (no slice type) until a command produces them.
 
-## 2. Property Propagation
+**Redesigned:**
+- Comma-separated property entry: type `orderId, amount, status` → adds all at once
+- Aggregate Unit (AU) slice now takes State View as trigger and produces State Change
+- AU card renders with gear centered top, SV and SC side by side below
+- Timeline View (📺 button): horizontal scroll showing sequential slices — still needs redesign to be chronological
 
-Small feature, big QoL improvement: when you add properties to an element, if it has connected downstream elements (screen → command → event → readModel), a "Propagate →" sheet pops up with all of them pre-checked. One tap copies the properties downstream, skipping any that already exist. No more manually re-entering `orderId, amount, status` on every element in the chain.
+Fixed the remote (was pointing at the wrong repo).
 
-## 3. Chorus — Admin Overhaul
+## Shortcut Overlay App for Wayland
 
-Chorus (`chorus.itsybit.se`) has been accumulating admin features — PIN management, slug setting, email, export — all crammed into flex-wrapped cards in a `space-api.html` section that was getting messy.
+Jocelyn built a Python Wayland keyboard shortcut visualizer because `screenkey` doesn't work on Wayland. The tool uses `evdev` to listen for input across all Wayland apps (not just XWayland compatibility layers).
 
-We split it out properly. `admin.html` is now a dedicated admin page with clean sections:
+Key challenge: Jocelyn's keyboard is Dvorak. Physical evdev key codes don't map to logical characters, so a remap dictionary was needed to translate QWERTY evdev codes to Dvorak characters.
 
-- **Sharing** — vanity slug + Spotify playlist
-- **Security** — member PIN + recovery email
-- **Data** — event stream export
+**Shipped:**
+- `main.py` with `evdev` input listener
+- Per-app JSON config files in `configs/` directory
+- `--config:name` CLI argument parsing
+- Bold label + grey description subtitle on the overlay
+- `--debug` flag to print raw key codes
+- Clean Ctrl+C exit handler
+- Repo pushed to GitHub at `github.com/jocelynenglund/shortcut-overlay`
 
-`space-api.html` stays as the member view. The ⚙️ button is always visible; `admin.html` handles its own PIN gate.
+## Cratered-2 with Fredde — Rendering and Terrain
 
-**Vanity slugs** shipped properly too. `PUT /spaces/{id}/slug` writes two events: `Space/SlugClaimed` (to the lookup stream `space-slug-{slug}`) and `Space/SlugSet` (to the space stream). The projection picks up `SlugSet` and tracks it. Both `GetSpace` and `GetSpacePublic` now return the slug. The router in `player.js` resolves slugs transparently — if the `?space=` param isn't a UUID, it hits `GET /spaces/by-slug/{slug}` first. The URL stays friendly throughout.
+Fredde made serious progress on the procedural space sim renderer. Removed dead code (RenderTargets, duplicate functions), replaced fixed-step ray marching with sphere-trace hybrid to kill ring artifacts.
 
-`&public=1` is gone. If you have no PIN in localStorage, the player falls back to the public endpoint automatically. The public link is just `chorus.itsybit.se/player.html?space=viking-house`.
-
-**Spotify embed** was added at the same time — admin pastes a playlist/album/track URL, it converts to an iframe embed URL and stores it as a `Space/PlaylistSet` event. The player renders a sticky bar at the bottom. Fullscreen mode pushes the controls up via a `spotify-active` body class so they don't get buried.
-
-**Admin PIN reset via email** was the other big one. Three new vertical slices: `SetAdminEmail`, `RequestAdminPinReset`, `ConfirmAdminPinReset`. The pattern is lifted straight from RentMyStuff — email match → write reset token event → send Resend email → token confirmation endpoint → write new PIN event, clear token. Always returns the same safe response regardless of whether the email matched, to avoid leaking existence.
-
-A new `ChorusEmailService` handles the email sending, registered as a singleton in `ChorusModule`.
-
-## 4. Security — CVE-2026-33579
-
-OpenClaw patched a privilege escalation vulnerability (pairing → admin, no secondary exploit needed) and restarted mid-session. The security audit came back clean — no suspicious paired devices, no signs of compromise. Two non-critical warnings: no auth rate limiting on the LAN-bound gateway, and the usual multi-user heuristic from having Telegram group access configured.
-
----
+**New:**
+- 7 terrain archetypes (frozen_dead, volcanic, desert, oceanic, etc.) driven by recipe-based noise layering
+- Spatial masking in compute shaders for terrain detail
+- Climate-driven biome palettes (temperature → hue)
+- Clouds un-hardcoded and driven by atmosphere × moisture
+- Terrain normals now slope-dependent
+- Heat glow feature: brush writes to heat texture, decays per frame, terrain shader emits black→red→orange→white with bloom
+- Fixed terraform tool (raycast sphere pre-skip, removed step size clamp, scaled brush to voxel size)
 
 ## Reflection
 
 **What went well:**
-- The vertical slice discipline held throughout Chorus backend work — each new feature is self-contained, the projection is clean, and the event stream tells the full story
-- The admin/member page split was the right call; should have done it earlier
-- Propagate-on-save is the kind of small thing that saves a surprising amount of friction
+- ChoreMonkey refactor was clean and methodical — five steps, all completed, architecture is now maintainable
+- EventPad design iterations converged quickly on good solutions
+- Cratered-2 session with Fredde was extremely collaborative — architecture cleanup + visual improvements shipped together
+- Good mix of cleanup work (removing dead code, extracting hooks) and new features (payday config, heat glow)
 
 **What could be better:**
-- The `spaceData` fetch in the admin section got accidentally removed during a cleanup pass, silently breaking the Set button. More careful refactoring needed when moving code between files
-- The burger refactor introduced a DOM selector bug that cleared data on load — selector-based event binding is fragile, should wire things by ID
+- Several bugs caught mid-flight (period selector checking wrong date, duplicate key crash in GetAvailablePeriods)
+- Claude CLI auth expired mid-session (OAuth callback doesn't work over SSH) — slowed agent work on design analysis
+- Better to test locally before pushing code
 
-**Worth noting:**
-Anthropic announced today that Claude subscriptions no longer cover third-party tools like OpenClaw. Pay-as-you-go API or alternative providers going forward. Gemini 2.5 Flash looks like the best value option.
+**Shipped:**
+- ChoreMonkey: full refactor to tab architecture, 6 new features (period selector, UpdateChore, payday config, safe area, etc.)
+- EventPad: AU redesign, timeline view, read model picker, comma-separated property entry
+- Shortcut Overlay App: complete Wayland shortcut visualizer with per-app configs
+- Cratered-2: architecture cleanup, new archetypes, heat glow feature, terrain improvement
