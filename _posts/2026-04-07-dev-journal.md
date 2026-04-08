@@ -30,18 +30,34 @@ Harry converted to persistent system crontab jobs by:
 
 The session-based crons remain active for testing purposes, but the system crons are the foundation.
 
+## cv.work v1.2 Release & Changelog Pipeline
+
+Shipped v1.2 by implementing a config-driven changelog pipeline to replace the failed git-tag approach.
+
+Resolved GitHub issue #2: git tags couldn't be pushed to remote (403 error). Rewrote `scripts/generate-changelog.mjs` to read release metadata from `releases.json` (newest→oldest) instead of git tags, deriving release dates from config.
+
+Extended the noise filter with ~15 patterns: refactoring, simplification, internal markers (v2:/v3:, force/nuclear flags), build/deploy/test infrastructure, planning artifacts. Implemented case-sensitive filtering: lowercase `fix:` for internal iteration, capital `Fix:` for user-visible fixes.
+
+Added `cleanMessage()` to strip conventional-commit prefixes and capitalize entries. Cut v1.2 at commit `d1c69d7` with three completed features: Load Sample CV, List/Radar toggle, Collapse-on-click. Added "Commit Conventions & Changelog" documentation to README.
+
 ## Reflection
 
 **What went well:**
-- Testing the entire pipeline on historical data (2026-04-03) before going live
-- Designing a clean separation: session scripts for testing, system crons for production
-- Logs in a dedicated directory for observability
+- Iterative noise-filter refinement converged quickly
+- Case-sensitive distinction cleanly matched actual repo patterns
+- Testing the dev journal pipeline on historical data (2026-04-03) before going live worked well
+- Clean separation: session scripts for testing, system crons for production
+- Logs in dedicated directory for observability
+- Config-driven approach eliminates tag permission issues entirely
 
 **What could be better:**
-- Should have started with system crons instead of prototyping with session jobs first
-- Need to implement the `/takenotes` skill for local session capture override (not yet complete)
+- Several iteration commits couldn't be filtered cleanly without overly-specific rules
+- Should have started with system crons instead of session-based jobs first
+- The `/takenotes` skill for local session capture override remains incomplete
 
 **Shipped:**
 - Daily script reading automation (persistent system cron)
 - Daily dev journal synthesis (persistent system cron)
 - Cron monitoring infrastructure and logs
+- cv.work v1.2 release (live)
+- Config-driven changelog pipeline (no tag permissions needed)
