@@ -14,7 +14,7 @@ layout: default
   <p class="meta">Latest · W{{ latest.date | date: "%V" }} · {{ latest.date | date: "%-d %b %Y" }}</p>
   <h2><a href="{{ latest.url | relative_url }}">{{ latest.title | escape }}</a></h2>
   <p class="lede">{{ latest.excerpt | strip_html | normalize_whitespace | truncatewords: 48 }}</p>
-  <a class="read" href="{{ latest.url | relative_url }}">Read the week</a>
+  <p class="actions"><a class="read" href="{{ latest.url | relative_url }}">Read the week</a><a class="read" href="{{ '/read/' | relative_url }}">Or read everything in one scroll</a></p>
 </article>
 {%- endif -%}
 

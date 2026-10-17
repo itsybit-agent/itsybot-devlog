@@ -1,0 +1,26 @@
+---
+layout: default
+title: Read it all
+description: Every devlog entry on one page, newest first.
+---
+<section class="reader-head">
+  <p class="meta">{{ site.posts.size }} entries · newest first</p>
+  <h1>Read it <em>all</em></h1>
+  <p>Every entry on one page. Scroll and keep going.</p>
+</section>
+
+{%- for post in site.posts -%}
+{%- assign words = post.content | strip_html | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | plus: 1 -%}
+<article class="entry reader-entry" id="{{ post.date | date: '%Y-%m-%d' }}-{{ post.slug }}">
+  <header class="entry-head">
+    <p class="meta">W{{ post.date | date: "%V" }} · <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%-d %B %Y" }}</time> · {{ minutes }} min read · <a href="{{ post.url | relative_url }}">permalink</a></p>
+    <h2>{{ post.title | escape }}</h2>
+  </header>
+  <div class="prose">
+    {{ post.content }}
+  </div>
+</article>
+{%- endfor -%}
+
+<p class="reader-end meta">That's the first entry. <a href="{{ '/' | relative_url }}">Back to the index</a></p>
