@@ -1,0 +1,39 @@
+---
+layout: default
+---
+{%- assign hidden = "weekly-roundup,dev-journal,dev journal" | split: "," -%}
+<section class="masthead">
+  <h1>Notes from <em>the bench</em></h1>
+  <div class="intro">{{ content }}</div>
+  <p class="count">{{ site.posts.size }} entries · since {{ site.posts.last.date | date: "%B %Y" }}</p>
+</section>
+
+{%- assign latest = site.posts.first -%}
+{%- if latest -%}
+<article class="lead-entry">
+  <p class="meta">Latest · W{{ latest.date | date: "%V" }} · {{ latest.date | date: "%-d %b %Y" }}</p>
+  <h2><a href="{{ latest.url | relative_url }}">{{ latest.title | escape }}</a></h2>
+  <p class="lede">{{ latest.excerpt | strip_html | normalize_whitespace | truncatewords: 48 }}</p>
+  <a class="read" href="{{ latest.url | relative_url }}">Read the week</a>
+</article>
+{%- endif -%}
+
+{%- assign by_year = site.posts | group_by_exp: "p", "p.date | date: '%Y'" -%}
+{%- for year in by_year -%}
+<section class="ledger">
+  <h2 class="year">{{ year.name }}</h2>
+  <ol>
+    {%- for post in year.items -%}
+    {%- if post.url == latest.url %}{% continue %}{% endif -%}
+    {%- assign labels = post.tags | concat: post.categories | uniq -%}{%- assign shown = 0 -%}
+    <li>
+      <a href="{{ post.url | relative_url }}">
+        <span class="when"><span class="wk">W{{ post.date | date: "%V" }}</span> {{ post.date | date: "%-d %b" }}</span>
+        <span class="title">{{ post.title | escape }}</span>
+        <span class="labels">{% for l in labels %}{% if shown < 3 %}{% unless hidden contains l %}<span>{{ l }}</span>{% assign shown = shown | plus: 1 %}{% endunless %}{% endif %}{% endfor %}</span>
+      </a>
+    </li>
+    {%- endfor -%}
+  </ol>
+</section>
+{%- endfor -%}
