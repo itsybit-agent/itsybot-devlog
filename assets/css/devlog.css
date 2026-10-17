@@ -303,3 +303,32 @@ a:hover { color: var(--coral); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ---------- read it all ---------- */
+
+.lead-entry .actions { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; margin: 0; }
+
+.reader-head { width: min(100%, var(--measure)); margin-inline: auto; padding-block: clamp(3rem, 9vw, 6rem) 1rem; }
+.reader-head .meta { margin: 0 0 1rem; color: var(--coral); }
+.reader-head h1 { margin: 0 0 0.75rem; font-family: var(--serif-display); font-weight: 400; font-size: clamp(3rem, 1.8rem + 5vw, 5.5rem); line-height: 0.95; }
+.reader-head h1 em { color: var(--coral); }
+.reader-head p:last-child { margin: 0; color: var(--text-soft); }
+
+.reader-entry { scroll-margin-top: 1rem; }
+.reader-entry + .reader-entry { margin-top: clamp(3rem, 8vw, 5rem); border-top: 1px solid var(--rule); }
+.reader-entry .entry-head { padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
+.reader-entry .entry-head h2 {
+  margin: 0;
+  font-family: var(--serif-display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 1.4rem + 3.5vw, 3.75rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+.reader-entry .meta a { color: var(--text-muted); }
+.reader-entry .meta a:hover { color: var(--coral); }
+.reader-end { width: min(100%, var(--measure)); margin: clamp(3rem, 8vw, 5rem) auto 0; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+
+.keep-reading { margin: clamp(2.5rem, 6vw, 4rem) 0 0; font-family: var(--mono); font-size: 0.8125rem; }
+.keep-reading a { color: var(--coral); text-decoration: none; }
+.keep-reading a::after { content: " ↓"; }

@@ -18,6 +18,8 @@ layout: default
     {{ content }}
   </div>
 
+  <p class="keep-reading"><a href="{{ '/read/' | relative_url }}#{{ page.date | date: '%Y-%m-%d' }}-{{ page.slug }}">Keep reading from here, all on one page</a></p>
+
   <nav class="entry-nav">
     {%- if page.previous %}
     <a class="prev" href="{{ page.previous.url | relative_url }}"><span>Earlier</span>{{ page.previous.title | escape }}</a>
