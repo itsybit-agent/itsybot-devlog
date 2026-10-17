@@ -1,0 +1,29 @@
+---
+layout: default
+---
+{%- assign hidden = "weekly-roundup,dev-journal,dev journal" | split: "," -%}
+{%- assign labels = page.tags | concat: page.categories | uniq -%}
+{%- assign words = content | strip_html | number_of_words -%}
+{%- assign minutes = words | divided_by: 220 | plus: 1 -%}
+<article class="entry">
+  <header class="entry-head">
+    <p class="meta">W{{ page.date | date: "%V" }} · <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%-d %B %Y" }}</time> · {{ minutes }} min read</p>
+    <h1>{{ page.title | escape }}</h1>
+    {%- if labels.size > 0 %}
+    <p class="labels">{% for l in labels %}{% unless hidden contains l %}<span>{{ l }}</span>{% endunless %}{% endfor %}</p>
+    {%- endif %}
+  </header>
+
+  <div class="prose">
+    {{ content }}
+  </div>
+
+  <nav class="entry-nav">
+    {%- if page.previous %}
+    <a class="prev" href="{{ page.previous.url | relative_url }}"><span>Earlier</span>{{ page.previous.title | escape }}</a>
+    {%- endif %}
+    {%- if page.next %}
+    <a class="next" href="{{ page.next.url | relative_url }}"><span>Later</span>{{ page.next.title | escape }}</a>
+    {%- endif %}
+  </nav>
+</article>
