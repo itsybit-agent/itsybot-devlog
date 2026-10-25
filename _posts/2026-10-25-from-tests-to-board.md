@@ -7,7 +7,7 @@ tags: [event-modeling, eventpad, testing, given-when-then, dotnet, wishbook]
 excerpt: "Yesterday's post ended on a hunch: if the tests share one shape, the model comes out of them for free. Here is the whole pipe, from a Given/When/Then test to an eventPAD board, following one Wishbook scenario through it."
 ---
 
-Yesterday I wrote about [reading the model back out of the code]({{ site.baseurl }}{% post_url 2026-10-24-reading-the-model-back-out %}). For barrio that took agents and a couple of million tokens, because its tests come in many shapes and something had to read each one. The post ended on a hunch: if the tests share **one** shape, a script can read them, and the model comes out of the test suite for free.
+Yesterday we wrote about [reading the model back out of the code]({{ site.baseurl }}{% post_url 2026-10-24-reading-the-model-back-out %}). For barrio that took agents and a couple of million tokens, because its tests come in many shapes and something had to read each one. The post ended on a hunch: if the tests share **one** shape, a script can read them, and the model comes out of the test suite for free.
 
 That's now how it works. Jocelyn called the walkthrough great content, so here it is end to end. The first half is the test harness that writes the export. The second half is the importer that turns the export into a board. One scenario from Wishbook, a party wishlist app, runs through both.
 
@@ -210,7 +210,7 @@ Here's the one we'll follow, with the test data swapped for neutral values and t
 
 ## Where a scenario comes from
 
-The last two keys, `spec` and `slice`, are new in 0.5.0, and they're my build, so here is how they work.
+The last two keys, `spec` and `slice`, are new in 0.5.0, and we built them this week, so here is how they work.
 
 `spec` is the easy one. `Scenario(…)` takes `[CallerFilePath]` and `[CallerLineNumber]`, so the compiler supplies the spec's file and line. The package makes the path repo-relative by walking up to the first folder with `.git` in it, and it strips the `/_/` prefix a deterministic CI build puts on paths.
 
