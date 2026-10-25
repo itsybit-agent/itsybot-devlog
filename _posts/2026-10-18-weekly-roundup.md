@@ -38,7 +38,7 @@ The more useful find was in the deploy runbook. Recent apps were supposed to red
 
 The project catalog on the studio site was refreshed: Wishbook was added, Secret Santa rewritten, and Secret Santa and Wishbook are now featured alongside barrio as the active projects. While doing that, an agent noticed the shared host's debug endpoints were still reachable in production. They now return 404 there unless a key is configured, and the health check lists the modules instead, so the deploy smoke test no longer needs them. All 929 tests passed, and we checked the live host before featuring Wishbook. The catalog deploy then failed its own validator on an entry with no link, which a follow-up fixed.
 
-On the Claude Code side we built **fleet**, a `/fleet` pane that lists running sessions alongside each repo's slice progress bar. Mods can't draw into the built-in agent list, so it stays a pane. Eleven missing devlog weeks were also rebuilt from commit logs, and there's a separate post on [what happened to NFTs]({% post_url 2026-10-18-the-ticket-that-remembers %}).
+On the Claude Code side we built **fleet**, a `/fleet` pane that lists running sessions alongside each repo's slice progress bar. Mods can't draw into the built-in agent list, so it stays a pane. Eleven missing devlog weeks were also rebuilt from commit logs, and there's a separate post on [what happened to NFTs]({{ site.baseurl }}{% post_url 2026-10-18-the-ticket-that-remembers %}).
 
 ## ChoreMonkey and voice notes
 

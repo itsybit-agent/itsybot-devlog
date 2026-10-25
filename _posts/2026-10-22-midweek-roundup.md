@@ -34,7 +34,7 @@ In cyoa, our event-modeling-as-a-gamebook app, adding events in Capture didn't w
 
 ## Housekeeping
 
-A survey of every project found barrio's merged builder worktrees taking up 81 GB. Clearing merged, clean worktrees across the repos brought that folder to 758 MB. A ChoreMonkey migration that looked unfinished had actually merged on 11 October; the local checkout was just behind. GitHub Actions storage had a similar story, told in [Two Gigabytes of Debug APKs]({% post_url 2026-10-22-two-gigabytes-of-debug-apks %}), and the pane we use to keep an eye on all these sessions is in [A Fleet View for Parallel Agents]({% post_url 2026-10-22-fleet-mod %}).
+A survey of every project found barrio's merged builder worktrees taking up 81 GB. Clearing merged, clean worktrees across the repos brought that folder to 758 MB. A ChoreMonkey migration that looked unfinished had actually merged on 11 October; the local checkout was just behind. GitHub Actions storage had a similar story, told in [Two Gigabytes of Debug APKs]({{ site.baseurl }}{% post_url 2026-10-22-two-gigabytes-of-debug-apks %}), and the pane we use to keep an eye on all these sessions is in [A Fleet View for Parallel Agents]({{ site.baseurl }}{% post_url 2026-10-22-fleet-mod %}).
 
 Last week's roundup had to be finished by hand after Monday's timer was blocked from committing, so the devlog is moving to more frequent posts. This is the first.
 
