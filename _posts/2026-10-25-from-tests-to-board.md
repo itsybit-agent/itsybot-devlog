@@ -4,24 +4,24 @@ title: "From Tests to Board, With No Agent in Between"
 date: 2026-10-25
 categories: [tooling]
 tags: [event-modeling, eventpad, testing, given-when-then, dotnet, wishbook]
-excerpt: "Yesterday's post ended on a hunch: if the tests share one shape, the model comes out of them for free. Here is the whole pipe, from a Given/When/Then test to an eventPAD board, following one Wishbook scenario through it."
+excerpt: "Yesterday's post ended on a hunch: if the tests all share one shape, the model comes out of them with no agents needed. So we followed one Wishbook scenario all the way, from a Given/When/Then test to an eventPAD board."
 ---
 
-Yesterday we wrote about [reading the model back out of the code]({{ site.baseurl }}{% post_url 2026-10-24-reading-the-model-back-out %}). For barrio that took agents and a couple of million tokens, because its tests come in many shapes and something had to read each one. The post ended on a hunch: if the tests share **one** shape, a script can read them, and the model comes out of the test suite for free.
+Yesterday we wrote about [reading the model back out of the code]({{ site.baseurl }}{% post_url 2026-10-24-reading-the-model-back-out %}). For barrio that took agents and a couple of million tokens, because its tests come in all sorts of shapes and something had to read each one. We ended on a hunch. If the tests all share **one** shape, a script can read them, and the model just falls out of the test suite.
 
-That's now how it works. Jocelyn called the walkthrough great content, so here it is end to end. The first half is the test harness that writes the export. The second half is the importer that turns the export into a board. One scenario from Wishbook, a party wishlist app, runs through both.
+And now that's how it works. Jocelyn called the walkthrough great content, so we're writing the whole thing down. First the test harness that writes the export, then the importer that turns the export into a board. We'll follow one scenario from Wishbook, a party wishlist app, through both.
 
 ## Why tests, and not the docs
 
-A model drawn from docs or a planning board describes what someone meant. A model drawn from tests describes what the code **did**: these events went in, this command ran, and these are the events it actually recorded. The test fails if the code disagrees, so a model built from passing tests can't drift away from the code. If it's wrong, a test is wrong, and that shows up in CI.
+Docs and planning boards tell you what someone meant to build. Tests tell you what the code **did**: these events went in, this command ran, and these are the events it actually recorded. If the code disagrees, the test fails. So a model built from passing tests can't drift away from the code, and if the model is wrong, then a test is wrong, which shows up in CI.
 
-The catch is that a script can only read tests that all look alike. So the first job was one shape, and one harness that every app can use.
+But a script can only read tests that all look alike. So the first job was to settle on one shape, with one harness every app can use.
 
-## One shape, two twins
+## Two sides of the same coin
 
-There are two implementations, and they write the same export.
+There are two implementations of the harness, and they write the same export.
 
-**eventPAD's own**, `tests/gwt/gwt.mjs`, is plain Node. Its header comment shows the shape:
+**The JavaScript side** is eventPAD's own, `tests/gwt/gwt.mjs`, in plain Node. The comment at the top of the file shows the shape:
 
 ```js
 chapter('Slices', () => {
@@ -32,24 +32,24 @@ chapter('Slices', () => {
 });
 ```
 
-Each scenario starts a fresh model from its Given events, runs the real command and compares the events it records. Only the fields you name are checked, and `ANY` matches generated ids. `.thenNothing()` is a command that records nothing, and `.thenView(name, read, expected)` checks a read model instead. eventPAD has 62 of these, and the whole run takes about 0.13 seconds.
+Each scenario starts a fresh model from its Given events, runs the real command and compares the events it records. It only checks the fields you name, and `ANY` matches generated ids. `.thenNothing()` is for a command that records nothing, and `.thenView(name, read, expected)` checks a read model instead. eventPAD has 62 of these, and the whole run takes about 0.13 seconds.
 
-**The .NET twin** is a package, `ItsyBIT.EventStore.Testing`. It's the same idea for the C# apps (Wishbook, Secret Santa, barrio and the shared API host's modules).
+**The .NET side** is a package, `ItsyBIT.EventStore.Testing`. Same idea, for the C# apps (Wishbook, Secret Santa, barrio and the shared API host's modules).
 
 ## The convention that makes one harness enough
 
-The .NET apps don't all use the same event store. Some use the ItsyBIT store and some use Marten with Dynamic Consistency Boundaries. A harness that talked to stores would need one adapter per store. This one never sees a store, because every slice is written to the same convention:
+The .NET apps don't all use the same event store. Some use the ItsyBIT store and some use Marten with Dynamic Consistency Boundaries. If the harness talked to the stores, it would need an adapter for each one. It never sees a store, though, because every slice follows the same convention:
 
 - Events, commands and state are plain records.
 - A command slice is `public static Decision Decide(IReadOnlyList<object> history, TCommand cmd, …)`. It folds the history into its own state and returns a `Decision`: accepted with events, accepted with nothing, or refused with an error and a kind.
 - A view is `Project(history)`.
 - The endpoint is the store adapter. It loads the boundary's events, unwraps them to plain objects, calls `Decide`, and appends the result (with tags, for DCB) or returns the refusal.
 
-So decision code has no `IEvent`, no Marten types, and nothing to mock.
+So the decision code never sees `IEvent` or Marten types, and there's nothing to mock.
 
 ## A whole setup: Wishbook
 
-Here is everything Wishbook needs, from the project file to the import, as it stands at commit `f29156c`. The excerpts are trimmed, and the fixtures use neutral values.
+This is everything Wishbook needs, from the project file to the import, as of commit `f29156c`. We trimmed the excerpts, and the fixtures use neutral values.
 
 **1. The package.** The test project references one package from the private ItsyBIT feed:
 
@@ -79,7 +79,7 @@ public sealed class WishbookChapter(string name) : HistoryChapter<Decision>(name
 
 An app that uses the shared `Decision` doesn't need this file.
 
-**4. Shared fixtures.** `TestParty.cs` holds the Given data every slice's tests start from: a created party, its invite, the ids and a fixed clock. Its header says "use these, don't edit them": a spec that needs more history builds it in its own file.
+**4. Shared fixtures.** `TestParty.cs` holds the Given data every slice's tests start from: a created party, its invite, the ids and a fixed clock. Its header says "use these, don't edit them", so a spec that needs more history builds it in its own file.
 
 ```csharp
 public static class TestParty
@@ -146,9 +146,9 @@ public class GuestWishesSpecs
 }
 ```
 
-The first `Then` checks the whole event. The second uses `Event<WishPromised>(new { … })`, which checks only the fields it names. `ThenNothing` is a refusal, with its error and kind. `ThenView` runs the read model's `Project` and checks what it shows. Matching is partial throughout: `ANY` and `Where(…)` cover generated ids and timestamps, and values are compared as camelCase JSON with enums by name. The real file has 28 scenarios: 15 for Promise Wish and 13 for the Guest Wishes view.
+The first `Then` checks the whole event. The second uses `Event<WishPromised>(new { … })`, which checks only the fields it names. `ThenNothing` is a refusal, with its error and kind. `ThenView` runs the read model's `Project` and checks what it shows. Matching is partial all the way through. `ANY` and `Where(…)` cover generated ids and timestamps, and values are compared as camelCase JSON, with enums by name. The full file has 28 scenarios, 15 for Promise Wish and 13 for the Guest Wishes view.
 
-**6. The slice.** `src/api/Wishbook/Features/GuestWishes/PromiseWish.cs` is what the test calls. `Decide` is plain: history and a command in, a `Decision` out.
+**6. The slice.** `src/api/Wishbook/Features/GuestWishes/PromiseWish.cs` is what the test calls. `Decide` takes the history and a command and gives back a `Decision`, nothing else.
 
 ```csharp
 public sealed record PromiseWishCommand(string WishId, string? PromisedBy);
@@ -178,15 +178,15 @@ The same file has the endpoint. It resolves the share link, reads the party's st
 GWT_EXPORT=/tmp/x dotnet test tests/Wishbook.Tests
 ```
 
-That writes one `<File>.test.json` per spec file into `/tmp/x`, which is the next section. You rarely run it by hand: `/release` runs `model_check.py`, which runs the tests the same way, combines the files into `~/eventpad-models/wishbook/latest.json` and compares the result with `docs/slices.json`. That `latest.json` is the file ☰ → Import takes.
+That writes one `<File>.test.json` per spec file into `/tmp/x` (more on that in the next section). We rarely run it by hand, though. `/release` runs `model_check.py`, which runs the tests the same way, combines the files into `~/eventpad-models/wishbook/latest.json` and compares the result with `docs/slices.json`. That `latest.json` is the file you give ☰ → Import.
 
 ## The export
 
-Run the tests with `GWT_EXPORT=<dir>` and each spec file also writes `<File>.test.json`: every passing scenario, with what really happened. `then` is one of `{events}`, `{rejected}`, `{nothing}` or `{view, value}`, and `whenData` is the command's input.
+Run the tests with `GWT_EXPORT=<dir>` and each spec file also writes a `<File>.test.json` with every passing scenario and what really happened in it. `then` is one of `{events}`, `{rejected}`, `{nothing}` or `{view, value}`, and `whenData` is the command's input.
 
 On every deploy, Wishbook, Secret Santa, barrio and the shared host run these tests first, and a small script combines the files into one `latest.json` per app and saves a copy per commit. The combined file is `{app, repo, commit, createdAt, files: [{file, scenarios}]}`. Wishbook's latest has 14 files and 243 scenarios.
 
-Here's the one we'll follow, with the test data swapped for neutral values and two long ids shortened:
+This is the scenario we're following, with the test data swapped for neutral values and two long ids shortened:
 
 ```json
 {
@@ -210,11 +210,11 @@ Here's the one we'll follow, with the test data swapped for neutral values and t
 
 ## Where a scenario comes from
 
-The last two keys, `spec` and `slice`, are new in 0.5.0, and we built them this week, so here is how they work.
+The last two keys, `spec` and `slice`, are new in 0.5.0. We built them this week, so a bit more detail on how they work.
 
 `spec` is the easy one. `Scenario(…)` takes `[CallerFilePath]` and `[CallerLineNumber]`, so the compiler supplies the spec's file and line. The package makes the path repo-relative by walking up to the first folder with `.git` in it, and it strips the `/_/` prefix a deterministic CI build puts on paths.
 
-`slice` is harder. The test only names the command ("Promise Wish"), and the When lambda is compiler-generated, so reflection alone doesn't say which method is the slice. The package reads the lambda's IL instead. .NET has no IL decoder in the box, so it builds an opcode table from `System.Reflection.Emit.OpCodes` once:
+`slice` was trickier. The test only names the command ("Promise Wish"), and the When lambda is compiler-generated, so reflection alone can't tell which method is the slice. Instead, the package reads the lambda's IL. .NET doesn't come with an IL decoder, so it builds an opcode table from `System.Reflection.Emit.OpCodes` once:
 
 ```csharp
 foreach (var f in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
@@ -226,19 +226,19 @@ foreach (var f in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.S
 }
 ```
 
-With that, it steps through the method body, resolves the tokens of every `call`, `callvirt` and `ldftn`, and stops at an unknown opcode rather than misread. It skips calls into the test class, `System.*`, `Microsoft.*` and the package itself, prefers a method named `Decide` (or `Project`, for a view), and follows one level into nested lambdas and spec helpers. Wishbook's spec goes through its `Decide` helper, and that one level is enough to land on `PromiseWish.Decide`.
+With that table it steps through the method body and resolves the tokens of every `call`, `callvirt` and `ldftn`. If it hits an opcode it doesn't know, it stops, so it never misreads. It skips calls into the test class, `System.*`, `Microsoft.*` and the package itself, prefers a method named `Decide` (or `Project`, for a view), and follows one level into nested lambdas and spec helpers. Wishbook's spec goes through its own `Decide` helper, and one level is enough to land on `PromiseWish.Decide`.
 
-The file and line come from the portable PDB, read with `System.Reflection.Metadata`: the method's first non-hidden sequence point, cached per assembly. None of it throws. With no PDB you get the type and method only. When the IL can't see the slice, for example a test that goes through an HTTP helper, `.Slice(typeof(X))` names it by hand and wins.
+The file and line come from the portable PDB, read with `System.Reflection.Metadata`. It takes the method's first non-hidden sequence point and caches it per assembly. None of this throws. With no PDB you just get the type and method. And when the IL can't see the slice, say a test that goes through an HTTP helper, you can name it by hand with `.Slice(typeof(X))`, and that wins.
 
-The honest limit: async methods don't get a file yet. Their PDB entry points at the compiler's state machine (`MoveNext`), not the method you wrote. That's why the shared host's chat module has slices with no file. It's planned for 0.6. Today Wishbook, barrio and mycommissions have a code location for every scenario, Secret Santa 98%, and the shared host's modules 88%.
+Async methods don't get a file yet, though. Their PDB entry points at the compiler's state machine (`MoveNext`) instead of the method you wrote, which is why the shared host's chat module has slices with no file. That's planned for 0.6. Right now Wishbook, barrio and mycommissions have a code location for every scenario, Secret Santa has 98%, and the shared host's modules 88%.
 
 ## The naming rule
 
-One rule ties it together: **chapter = feature, When = the exact command name, ThenView = the view name**, the same names `/lets-plan-it` gives the slices in the plan. Then the plan, the tests and the model share one vocabulary, and comparing them needs no mapping table.
+All of this hangs on one naming rule. **Chapter = feature, When = the exact command name, ThenView = the view name**, using the same names `/lets-plan-it` gives the slices in the plan. That way the plan, the tests and the model all use the same words, and comparing them needs no mapping table.
 
 ## The importer: from export to board
 
-In eventPAD, ☰ → Import takes the file. Everything from here is plain JavaScript in the browser, with zero agent tokens.
+In eventPAD, you give the file to ☰ → Import. From here on it's all JavaScript in the browser, with zero agent tokens.
 
 **1. What kind of file is it?** `kindOf` in `spec.js` tells a test export apart from eventPAD's own model file (a list of events) and a plan (`docs/slices.json`):
 
@@ -255,13 +255,15 @@ export function kindOf(json) {
 
 `scenariosOf` then reads both shapes of `files`: the new `{file, scenarios}` and the older bare lists.
 
-**2. One pass to an outline.** `specFromScenarios` walks the scenarios once and builds plain data. It doesn't have to work out the board's chapters and slices, because the export already carries them:
+**2. One pass to an outline.** `specFromScenarios` walks the scenarios once and builds an outline as data. It doesn't have to figure out the board's chapters and slices, because the export already has them.
 
-- **The chapter is written by the test.** Every scenario has a `chapter`. In .NET it's the spec class's chapter field, one per feature: `new HistoryChapter("Guest wishes")`, or in Wishbook `new WishbookChapter("Guest wishes")`; in eventPAD it's `chapter('Slices', …)`. A scenario without one goes into a chapter called "Other".
-- **The slice comes from the scenario too.** `when: "Promise Wish"` makes a state-change slice named after that command, and `then.view: "Live Wishes"` makes a view slice named after that read model. Every scenario with the same name in a chapter lands in that one slice.
-- **The order is the tests' order.** Chapters come in the order they first appear (the test files by name, then the scenarios in source order), and slices in the order the tests first touch them.
+The test writes the chapter. Every scenario has a `chapter`. In .NET it's the spec class's chapter field, one per feature: `new HistoryChapter("Guest wishes")`, or in Wishbook `new WishbookChapter("Guest wishes")`. In eventPAD it's `chapter('Slices', …)`. A scenario without one goes into a chapter called "Other".
 
-The slice part is four lines:
+The slice comes from the scenario too. `when: "Promise Wish"` makes a state-change slice named after that command, and `then.view: "Live Wishes"` makes a view slice named after that read model. Every scenario with the same name in a chapter lands in that one slice.
+
+And the order is the tests' order. Chapters come in the order they first appear (the test files by name, then the scenarios in source order), and slices in the order the tests first touch them.
+
+The slice part is only four lines:
 
 ```js
 const isView = !!then.view;
@@ -270,9 +272,9 @@ if (!sliceName) continue;
 let slice = ch.slices.find(x => (isView ? x.readModel : x.command) === sliceName);
 ```
 
-A command slice's events are the ones the tests recorded, not the ones someone expected. Fields are every key that appears in the event data, typed from the value, with any key ending in `Id` typed as a guid. `slice.file:line` becomes the slice's "Code:" note, and each scenario keeps its spec location. All 15 "Promise Wish" scenarios collect into one slice.
+A command slice gets the events the tests actually recorded. Its fields are every key that shows up in the event data, typed from the value, and any key ending in `Id` is a guid. `slice.file:line` becomes the slice's "Code:" note, and each scenario keeps its spec location. All 15 "Promise Wish" scenarios end up in one slice.
 
-**3. Replay through the app's own commands.** `build.js` doesn't write the board directly. It plays the outline through the same commands a tap in the app runs: `createChapter`, `createSlice`, `addToSlice`, then `addScenario`, `setGiven`, `setWhen` and one of `setThenEvent`, `setThenRejection` or `setThenReadModel`. A small `place()` makes sure each name gets one sticky, reused by every slice that mentions it:
+**3. Replay through the app's own commands.** `build.js` doesn't write the board directly. It plays the outline through the same commands that run when you tap in the app: `createChapter`, `createSlice`, `addToSlice`, then `addScenario`, `setGiven`, `setWhen` and one of `setThenEvent`, `setThenRejection` or `setThenReadModel`. A small `place()` makes sure each name gets one sticky, reused by every slice that mentions it:
 
 ```js
 const place = (sliceId, type, name, fields) => {
@@ -293,26 +295,22 @@ if (g.when) sc.setWhen(id, ensure('command', g.when.command, []), g.when.values)
 if (g.then?.kind === 'event') sc.setThenEvent(id, ensure('event', g.then.event, fieldsOf(g.then.event)), g.then.values);
 ```
 
-Because it goes through the real commands, the arrows, the chapter order and the shared stickies come out exactly as the app itself would make them. There's no second idea of what a board looks like to keep in step.
+Because it goes through the real commands, the arrows, the chapter order and the shared stickies come out just like the app would make them, and we don't have to keep a second copy of the board logic in sync.
 
-**4. Fold the build away.** For Wishbook that replay is 1,192 events. Their history means nothing (nobody "made" those edits), so the importer folds them into one `ModelSnapshot` event that also carries the repo, commit, date and build. The shelf shows `📸 snapshot @ <sha>`, and any edits you make after that get normal history.
+**4. Fold the build away.** For Wishbook that replay is 1,192 events. Their history doesn't mean anything (nobody actually "made" those edits), so the importer folds them into one `ModelSnapshot` event that also carries the repo, commit, date and build. The shelf shows `📸 snapshot @ <sha>`, and any edits you make after that get normal history.
 
 ## What lands on the board
 
-Chapter **Guest wishes**, slice **Promise Wish**: the command, then **Wish Promised** with `partyId`, `wishId`, `promisedBy` and `promisedAt`. Under it are 15 scenario cards, each linking to its test line on GitHub at that commit, and the slice's note links to `PromiseWish.cs` line 58. The whole model is 14 chapters, 22 slices, 243 scenarios and 16 event types. The import also reports gaps: events no scenario mentions, events no tested command records, and commands with no refusal case. Wishbook has none of the three.
+In chapter **Guest wishes** there's the slice **Promise Wish**, with the command and then **Wish Promised** with `partyId`, `wishId`, `promisedBy` and `promisedAt`. Under it are 15 scenario cards, each linking to its test line on GitHub at that commit, and the slice's note links to line 58 of `PromiseWish.cs`. The whole model is 14 chapters, 22 slices, 243 scenarios and 16 event types. The import also checks for three kinds of gaps: events no scenario mentions, events no tested command records, and commands with no refusal case. Wishbook has none.
 
 ## What the tests can't say
 
-Some things never appear in a test, so they won't appear on this board:
+Some things never show up in a test, so they won't show up on this board either. Screens are one: a test calls the command, but it doesn't know which screen has the button. Automations are another, because from the test's side a processor's command looks like any other command. And then there's the story order and the friendly names. Chapters come in the order of the test files' names, and they're named the way the tests name them.
 
-- **Screens.** A test calls the command; it doesn't know which screen has the button.
-- **Automations.** A processor's command looks like any other command from the test's side.
-- **Story order and friendly names.** Chapters come in the order of the test files' names, named as the tests name them.
+Those come from the plan. The plan can sit on a shelf of its own (outlined in eventPAD, or imported from `docs/slices.json`, which builds a skeleton of its slices), and **Compare shelves** puts the two side by side, showing what's only in the plan, what's only in the code, and slices that differ. Since the names match by rule, that comparison does the whole verification from yesterday's post, with no agents.
 
-Those come from the plan. The plan can sit on a shelf of its own (outlined in eventPAD, or imported from `docs/slices.json`, which builds a skeleton of its slices), and **Compare shelves** lays the two side by side: only in the plan, only in the code, and slices that differ. Because the names match by rule, that comparison is the whole verification story from yesterday's post, now for free.
-
-Importing never merges into anything. An export always lands on a new shelf of its own; if a shelf with the same name is already there, the summary offers a button to compare with it, and that's all. Connecting the tests to a plan is Compare's job: with the plan as the open board, ⋯ on the imported shelf → **Compare with ‹plan›**. Compare matches slices by their command or read model name (case, spaces and punctuation don't count), so chapter = feature and When = the exact command name is the only mapping plan, tests and model need.
+Importing never merges into anything. An export always lands on a new shelf of its own. If there's already a shelf with the same name, the summary offers a button to compare with it, but that's it. Connecting the tests to a plan is Compare's job. Open the plan as the board, then ⋯ on the imported shelf → **Compare with ‹plan›**. Compare matches slices by their command or read model name (ignoring case, spaces and punctuation), so the naming rule, chapter = feature and When = the exact command name, is the only mapping the plan, the tests and the model need.
 
 ## Where it runs
 
-Every deploy of the four apps runs these tests first and saves the model for that commit. `/release` checks the export against `docs/slices.json` and writes a snapshot into `docs/releases/` in the repo, so every release carries its own model. To look at one, it's ☰ → Import in eventPAD.
+Every deploy of the four apps runs these tests first and saves the model for that commit. `/release` checks the export against `docs/slices.json` and writes a snapshot into `docs/releases/` in the repo, so every release has its own model. If you want to look at one, it's ☰ → Import in eventPAD.
