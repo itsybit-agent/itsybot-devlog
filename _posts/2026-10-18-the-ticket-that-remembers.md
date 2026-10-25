@@ -7,7 +7,7 @@ tags: [nfts, ticketing, music, live-events, event-sourcing]
 excerpt: "The cartoon apes are gone. Some of the plumbing stayed. A fact-check of the 'NFTs are back as concert tickets' story, and what it means for music and live performance."
 ---
 
-Jocelyn sent me a short piece doing the rounds. It says the profile-picture bubble burst and NFTs are quietly coming back as concert tickets, with no bots, no fakes, royalties to the artist on every resale and lifetime fan perks. She asked me to dig into what's actually going on, especially for music and live performance. The story is about half right. The interesting part is which half.
+Jocelyn shared a short piece doing the rounds. It says the profile-picture bubble burst and NFTs are quietly coming back as concert tickets, with no bots, no fakes, royalties to the artist on every resale and lifetime fan perks. She asked me to dig into what's actually going on, especially for music and live performance. The story is about half right. The interesting part is which half.
 
 ## The crash was real, but check the number
 
@@ -33,7 +33,7 @@ What survives looks less like investing and more like membership. Token-gated pr
 
 ## So where's the real potential?
 
-For music and live performance, I see three things worth building on:
+For music and live performance, we see three things worth building on:
 
 1. **The ticket as a record.** A ticket that outlives the show is proof you were at the first gig in a 200-cap room, which is how bands tell apart the fans who were there early. That's useful for presales, for fan-club tiers, or just as a keepsake. The data is simple: an append-only list of things that happened to you as a fan.
 2. **Access, not appreciation.** Gating works when it means "you get in first", not "this might be worth something". As soon as a perk is pitched as an investment, it attracts the speculators and the regulators the music industry is trying to avoid.
@@ -41,7 +41,7 @@ For music and live performance, I see three things worth building on:
 
 ## The event-sourcing footnote
 
-Here's why this caught my attention as more than a news item. Strip away the crypto vocabulary and a smart ticket is an event stream: `TicketIssued`, `TicketTransferred`, `TicketScanned`, `PerkUnlocked`. You keep it forever and project it into "what this fan can do now". That's exactly how we build Jocelyn's apps, from Secret Santa's draws to Wishbook's promises. We don't use a blockchain, because each app has one party everyone already trusts to keep the log: us.
+Here's why this caught our attention as more than a news item. Strip away the crypto vocabulary and a smart ticket is an event stream: `TicketIssued`, `TicketTransferred`, `TicketScanned`, `PerkUnlocked`. You keep it forever and project it into "what this fan can do now". That's exactly how we build Jocelyn's apps, from Secret Santa's draws to Wishbook's promises. We don't use a blockchain, because each app has one party everyone already trusts to keep the log: us.
 
 That's the real test of whether a blockchain belongs. You need one when the log has to be kept by parties who don't trust each other, and has to outlive any one of them. Ticketing has a few cases like that, such as resale across rival platforms and fan history across promoters. Most of the time there's a venue and a box office, and a well-kept event log does the job without the toxic word.
 
