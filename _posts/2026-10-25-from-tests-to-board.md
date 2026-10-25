@@ -45,25 +45,140 @@ The .NET apps don't all use the same event store. Some use the ItsyBIT store and
 - A view is `Project(history)`.
 - The endpoint is the store adapter. It loads the boundary's events, unwraps them to plain objects, calls `Decide`, and appends the result (with tags, for DCB) or returns the refusal.
 
-So decision code has no `IEvent`, no Marten types, and nothing to mock. A spec looks like this (from the package's README, with neutral names):
+So decision code has no `IEvent`, no Marten types, and nothing to mock.
 
-```csharp
-Chores.Scenario("Anybody can take a free chore")
-    .Given(Dishes)
-    .When("Claim Chore", new ClaimChore("c-1", "Guest A"), Claim)
-    .Then(new ChoreClaimed("c-1", "Guest A", Today));
+## A whole setup: Wishbook
 
-Chores.Scenario("A chore somebody has taken can't be taken by anybody else that day")
-    .Given(Dishes, new ChoreClaimed("c-1", "Guest A", Today))
-    .When("Claim Chore", new ClaimChore("c-1", "Guest B"), Claim)
-    .ThenNothing("Someone else has taken that one today", "Conflict");
+Here is everything Wishbook needs, from the project file to the import, as it stands at commit `f29156c`. The excerpts are trimmed, and the fixtures use neutral values.
 
-Chores.Scenario("The board shows who has taken a chore")
-    .Given(Dishes, new ChoreClaimed("c-1", "Guest A", Today))
-    .ThenView("Chore Board", h => ChoreBoard.Project(h, Today), new { chores = new[] { new { takenBy = "Guest A" } } });
+**1. The package.** The test project references one package from the private ItsyBIT feed:
+
+```xml
+<!-- tests/Wishbook.Tests/Wishbook.Tests.csproj -->
+<PackageReference Include="ItsyBIT.EventStore.Testing" Version="0.5.0" />
+<PackageReference Include="xunit" Version="2.9.2" />
 ```
 
-`Claim` is a one-line helper in the spec: `(h, c) => ClaimChoreSlice.Decide(h, c, Today)`. Matching is partial: an anonymous object checks only the fields it names, `ANY` and `Where(…)` cover generated ids and timestamps, and values are compared as camelCase JSON with enums by name.
+and `nuget.config` at the repo root adds the feed next to nuget.org. The token comes from the environment, never the file:
+
+```xml
+<add key="github" value="https://nuget.pkg.github.com/<owner>/index.json" />
+…
+<add key="ClearTextPassword" value="%GITHUB_TOKEN%" />
+```
+
+**2. One global using.** `GlobalUsings.cs` makes the package's types visible everywhere: `global using ItsyBIT.EventStore.Testing;`. Each spec file adds `using static ItsyBIT.EventStore.Testing.Gwt;` for `Event<T>`, `ANY` and friends.
+
+**3. A one-line adapter.** Wishbook has its own `Decision` type from before the package existed, so it tells the harness once how to read one:
+
+```csharp
+// tests/Wishbook.Tests/WishbookChapter.cs
+public sealed class WishbookChapter(string name) : HistoryChapter<Decision>(name,
+    d => d.Accepted ? Outcome.Recorded(d.Events) : Outcome.Refused(d.Error!, d.Kind.ToString()));
+```
+
+An app that uses the shared `Decision` doesn't need this file.
+
+**4. Shared fixtures.** `TestParty.cs` holds the Given data every slice's tests start from: a created party, its invite, the ids and a fixed clock. Its header says "use these, don't edit them": a spec that needs more history builds it in its own file.
+
+```csharp
+public static class TestParty
+{
+    public static readonly DateTimeOffset At = new(2026, 10, 9, 12, 0, 0, TimeSpan.Zero);
+
+    public const string PartyId = "p-1";
+    public const string ShareId = "s-1";
+    public const string OrgKey = "…";   // real-shaped keys, so the no-raw-secrets scan means something
+    public static readonly string WisherKey = PartyKeys.DeriveWisherKey(OrgKey);
+
+    public static readonly PartyCreated Created = new(
+        PartyId, PartyKinds.Party, PartyKeys.Hash(OrgKey), PartyKeys.Hash(WisherKey), ShareId,
+        "Host", 10, "Birthday party", "", At);
+
+    public static readonly InviteUpdated Invite = new(
+        PartyId, "Birthday party", "Come and celebrate!", "2026-12-01", "15:00", "18:00",
+        "The venue", "https://maps.example/venue", At);
+}
+```
+
+**5. The spec.** `GuestWishesSpecs.cs` is one feature, so it's one chapter. It names its Given data once, and its `Decide` helper turns Wishbook's argument order (`cmd, history, now`) into the harness's (`history, cmd`) with the clock fixed:
+
+```csharp
+public class GuestWishesSpecs
+{
+    private static readonly WishbookChapter GuestWishes = new("Guest wishes");
+    private static readonly DateTimeOffset Now = TestParty.At.AddDays(1);
+
+    private static readonly WishAdded BoardGame = new(TestParty.PartyId, "w-1", "A board game", "", Roles.Organizer, TestParty.At);
+    private static readonly WishAdded Kite = new(TestParty.PartyId, "w-2", "A kite", "", Roles.Wisher, TestParty.At);
+    private static readonly object[] Party = [TestParty.Created, TestParty.Invite, BoardGame, Kite];
+
+    private static PromiseWishCommand Promise(string wishId, string? by) => new(wishId, by);
+    private static Decision Decide(IReadOnlyList<object> h, PromiseWishCommand cmd) => PromiseWish.Decide(cmd, h, Now);
+    private static WishPromised Promised(string wishId, string by) => new(TestParty.PartyId, wishId, by, Now);
+
+    [Fact]
+    public void A_guest_promises_a_wish() =>
+        GuestWishes.Scenario("A guest promises a wish")
+            .Given(Party)
+            .When("Promise Wish", Promise("w-1", "Guest A"), Decide)
+            .Then(Promised("w-1", "Guest A"));
+
+    [Fact]
+    public void Another_wish_can_still_be_promised() =>
+        GuestWishes.Scenario("Another wish can still be promised")
+            .Given(Party, Promised("w-1", "Guest A"))
+            .When("Promise Wish", Promise("w-2", "Guest B"), Decide)
+            .Then(Event<WishPromised>(new { wishId = "w-2", promisedBy = "Guest B" }));
+
+    [Fact]
+    public void Already_promised() =>
+        GuestWishes.Scenario("A wish can only be promised once")
+            .Given(Party, Promised("w-1", "Guest A"))
+            .When("Promise Wish", Promise("w-1", "Guest B"), Decide)
+            .ThenNothing(Errors.AlreadyPromised, nameof(ErrorKind.Conflict));
+
+    [Fact]
+    public void Removed_wishes_are_gone() =>
+        GuestWishes.Scenario("Removed wishes are gone")
+            .Given(Party, Promised("w-1", "Guest A"), new WishRemoved(TestParty.PartyId, "w-1", Roles.Organizer, Now))
+            .ThenView("Guest Wishes", GuestWishesProjection.Project, new { wishes = new[] { new { wishId = "w-2" } }, open = 1 });
+}
+```
+
+The first `Then` checks the whole event. The second uses `Event<WishPromised>(new { … })`, which checks only the fields it names. `ThenNothing` is a refusal, with its error and kind. `ThenView` runs the read model's `Project` and checks what it shows. Matching is partial throughout: `ANY` and `Where(…)` cover generated ids and timestamps, and values are compared as camelCase JSON with enums by name. The real file has 28 scenarios: 15 for Promise Wish and 13 for the Guest Wishes view.
+
+**6. The slice.** `src/api/Wishbook/Features/GuestWishes/PromiseWish.cs` is what the test calls. `Decide` is plain: history and a command in, a `Decision` out.
+
+```csharp
+public sealed record PromiseWishCommand(string WishId, string? PromisedBy);
+
+public static Decision Decide(PromiseWishCommand cmd, IReadOnlyList<object> history, DateTimeOffset now)
+{
+    var created = PartyState.Created(history);
+    if (created is null) return Decision.NotFound(Errors.NotFound);
+
+    var by = (cmd.PromisedBy ?? "").Trim();
+    if (by.Length > Streams.MaxNameLength) return Decision.Invalid(Errors.TooLong);
+    if (!PartyState.IsLocked(history)) return Decision.Conflict(LockIn.LockInErrors.NotReady);
+    if (!PartyState.LiveWishes(history).Any(w => w.WishId == cmd.WishId && !w.Private))
+        return Decision.NotFound(Errors.WishNotFound);
+    if (PartyState.Promises(history).ContainsKey(cmd.WishId))
+        return Decision.Conflict(Errors.AlreadyPromised);
+
+    return Decision.Accept(new WishPromised(created.PartyId, cmd.WishId, by, now));
+}
+```
+
+The same file has the endpoint. It resolves the share link, reads the party's stream under its lock, calls `Decide` and appends what it accepted. The test never touches that part.
+
+**7. Running it.**
+
+```sh
+GWT_EXPORT=/tmp/x dotnet test tests/Wishbook.Tests
+```
+
+That writes one `<File>.test.json` per spec file into `/tmp/x`, which is the next section. You rarely run it by hand: `/release` runs `model_check.py`, which runs the tests the same way, combines the files into `~/eventpad-models/wishbook/latest.json` and compares the result with `docs/slices.json`. That `latest.json` is the file ☰ → Import takes.
 
 ## The export
 
@@ -111,7 +226,7 @@ foreach (var f in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.S
 }
 ```
 
-With that, it steps through the method body, resolves the tokens of every `call`, `callvirt` and `ldftn`, and stops at an unknown opcode rather than misread. It skips calls into the test class, `System.*`, `Microsoft.*` and the package itself, prefers a method named `Decide` (or `Project`, for a view), and follows one level into nested lambdas and spec helpers like `Claim`. Wishbook's spec goes through a helper, and that one level is enough to land on `PromiseWish.Decide`.
+With that, it steps through the method body, resolves the tokens of every `call`, `callvirt` and `ldftn`, and stops at an unknown opcode rather than misread. It skips calls into the test class, `System.*`, `Microsoft.*` and the package itself, prefers a method named `Decide` (or `Project`, for a view), and follows one level into nested lambdas and spec helpers. Wishbook's spec goes through its `Decide` helper, and that one level is enough to land on `PromiseWish.Decide`.
 
 The file and line come from the portable PDB, read with `System.Reflection.Metadata`: the method's first non-hidden sequence point, cached per assembly. None of it throws. With no PDB you get the type and method only. When the IL can't see the slice, for example a test that goes through an HTTP helper, `.Slice(typeof(X))` names it by hand and wins.
 
@@ -140,7 +255,13 @@ export function kindOf(json) {
 
 `scenariosOf` then reads both shapes of `files`: the new `{file, scenarios}` and the older bare lists.
 
-**2. One pass to an outline.** `specFromScenarios` walks the scenarios once and builds plain data. The test's chapter becomes the chapter. A `when` becomes a state-change slice and a `then.view` becomes a view slice, keyed by name, so every scenario with the same command lands in the same slice:
+**2. One pass to an outline.** `specFromScenarios` walks the scenarios once and builds plain data. It doesn't have to work out the board's chapters and slices, because the export already carries them:
+
+- **The chapter is written by the test.** Every scenario has a `chapter`. In .NET it's the spec class's chapter field, one per feature: `new HistoryChapter("Guest wishes")`, or in Wishbook `new WishbookChapter("Guest wishes")`; in eventPAD it's `chapter('Slices', …)`. A scenario without one goes into a chapter called "Other".
+- **The slice comes from the scenario too.** `when: "Promise Wish"` makes a state-change slice named after that command, and `then.view: "Live Wishes"` makes a view slice named after that read model. Every scenario with the same name in a chapter lands in that one slice.
+- **The order is the tests' order.** Chapters come in the order they first appear (the test files by name, then the scenarios in source order), and slices in the order the tests first touch them.
+
+The slice part is four lines:
 
 ```js
 const isView = !!then.view;
@@ -186,9 +307,11 @@ Some things never appear in a test, so they won't appear on this board:
 
 - **Screens.** A test calls the command; it doesn't know which screen has the button.
 - **Automations.** A processor's command looks like any other command from the test's side.
-- **Story order and friendly names.** Chapters come in the order the files run, named as the tests name them.
+- **Story order and friendly names.** Chapters come in the order of the test files' names, named as the tests name them.
 
 Those come from the plan. The plan can sit on a shelf of its own (outlined in eventPAD, or imported from `docs/slices.json`, which builds a skeleton of its slices), and **Compare shelves** lays the two side by side: only in the plan, only in the code, and slices that differ. Because the names match by rule, that comparison is the whole verification story from yesterday's post, now for free.
+
+Importing never merges into anything. An export always lands on a new shelf of its own; if a shelf with the same name is already there, the summary offers a button to compare with it, and that's all. Connecting the tests to a plan is Compare's job: with the plan as the open board, ⋯ on the imported shelf → **Compare with ‹plan›**. Compare matches slices by their command or read model name (case, spaces and punctuation don't count), so chapter = feature and When = the exact command name is the only mapping plan, tests and model need.
 
 ## Where it runs
 
