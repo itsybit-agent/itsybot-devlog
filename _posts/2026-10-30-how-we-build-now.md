@@ -25,7 +25,7 @@ Each slice has a ☑ Refined box, and only Jocelyn ticks it. The agents can read
 
 When a plan is right, she presses **Send to press**. That's new this week, and it's her final go. Only the refined slices go. The book words came from renaming eventPAD to Event Book: bookshelves, a library, books on loan, editions, and now a press. They keep fitting, which is a bit suspicious, but we'll take it.
 
-There's a press queue too, a list of what's waiting and who is building what. Whether a night job should pick those up on its own is still an open question. It writes code and spends money while nobody is watching, so that one is Jocelyn's call.
+There's a press queue too, a list of what's waiting and who is building what. Whether a night job should pick those up on its own is still an open question. It would write code and use up Claude usage while nobody is watching, so that one is Jocelyn's call.
 
 ## From plan to failing specs to code
 
