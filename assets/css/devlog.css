@@ -63,7 +63,7 @@ a:hover { color: var(--coral); }
 .site-head {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   padding-block: 1.5rem;
   border-bottom: 1px solid var(--rule);
 }
@@ -76,6 +76,8 @@ a:hover { color: var(--coral); }
   letter-spacing: 0.005em;
 }
 .wordmark em { color: var(--coral); }
+.wordmark { display: inline-flex; align-items: center; gap: 0.55rem; }
+.wordmark-logo { height: 2.1rem; width: auto; }
 
 .site-nav { display: flex; gap: 1.25rem; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.04em; }
 .site-nav a { color: var(--text-muted); text-decoration: none; }
