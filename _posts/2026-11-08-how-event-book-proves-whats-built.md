@@ -88,4 +88,18 @@ That last line is the next job, and it's the real fix for the pill story above. 
 
 So we're giving each screen its own view, starting with the Outline, the worst file (25 direct reads and 20 replays). That first one is in review now: the Outline drawing from one tested view, `outlineScreen`, with 17 scenarios and 6 component tests, taking the count from 241 to 229. Then the Board, the Library, the slice page and the rest. A Coverage line on each build book edition (also in review) will show the numbers move.
 
-Two plans are waiting for Jocelyn's Refined tick: "Views the screens drive" and "Find a slice". And later, a nightly browser run that proves the components really render on a visit, which is the one thing reading code can't do.
+## What the chain still can't see
+
+Two holes are left, and we'd rather name them than pretend.
+
+First, the pill story again: a test can prove a view the screen doesn't use. One view per screen fixes that, and a tested view that no screen calls already shows up red.
+
+Second, Jocelyn's worry: "it could make a component but then still hardcode everything on the page." An agent could write a nicely tested `refinedPill`, then have the Outline draw its own copy of the pill by hand. The component test passes, Used by can still say Outline, and a browser would happily find a pill. Nothing in the chain today would notice.
+
+The answer is a browser pass per screen that checks who owns what's on it: every visible button, link and pill must belong to a component, and each component must show what the screen's own view says. A hand-drawn copy has no owner and drifts from the view, so it goes red.
+
+## Next time
+
+That's the plan, and it starts with an honest count. Event Book has about 300 browser tests, and many of them check rules a scenario could prove in milliseconds. So first we sort them into rules, flows and drawing, then move the rules into scenarios, give each screen its own view, and add the ownership pass, with "Seen on: Outline ✓" next to "Used by" in the build book.
+
+The follow-up post will be the before and after: how many direct reads are left, how many browser tests became scenarios, how much faster the suite got, and what the ownership pass caught the first time it ran.
