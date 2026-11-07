@@ -33,6 +33,8 @@ They run Event Book's real code in Node with no browser, about 690 of them in si
 
 ## Component tests (new this week)
 
+Here's why we needed them. The Outline's Refined pill had a passing scenario test: given a refined slice, the Refined State view says refined. Fine. But the screen never read Refined State. It got its data from one big view that served everything, so the test proved a view the pill didn't use.
+
 That gap is what component tests fill. A component test starts the same way, from events. Then it reads the view, hands the view to the app's own drawing function (the same one the real screen uses), and checks what comes out: the label, whether the button is there.
 
 A second kind asks a component what a tap means, runs that command, and checks the events it recorded. So now there's proof that the screen part draws what its view says, and that its button starts the right command. Still no browser: the drawing functions turn a view into HTML, and that's all the test needs.
@@ -82,6 +84,8 @@ Each build book edition will carry a Coverage line, so the numbers show up next 
 - 136 of 170 tested functions reach a screen.
 - Screens still read the book directly 241 times, and replay it 121 times, across 31 files.
 
-That last line is the next job. A screen should get its data from one view made for it, not dig through the book itself, because a view can be tested and a screen reading raw events can't. So we're giving each screen its own view, starting with the Outline (25 direct reads and 20 replays, the worst file), then the Board, the Library, the slice page and the rest. The Coverage line will show the numbers move.
+That last line is the next job, and it's the real fix for the pill story above. A screen should get its data from one view made for it, not dig through the book or a big shared view, because then the view a test proves is the view the screen shows. Used by already helps here: a tested view that no screen calls gets "⚠ no screen reaches it", which is exactly how the pill's case looks.
+
+So we're giving each screen its own view, starting with the Outline, the worst file (25 direct reads and 20 replays). That first one is in review now: the Outline drawing from one tested view, `outlineScreen`, with 17 scenarios and 6 component tests, taking the count from 241 to 229. Then the Board, the Library, the slice page and the rest. A Coverage line on each build book edition (also in review) will show the numbers move.
 
 Two plans are waiting for Jocelyn's Refined tick: "Views the screens drive" and "Find a slice". And later, a nightly browser run that proves the components really render on a visit, which is the one thing reading code can't do.
