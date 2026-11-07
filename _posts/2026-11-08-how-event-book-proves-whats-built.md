@@ -17,6 +17,8 @@ Every time Event Book deploys, its CI runs the Given/When/Then tests with an exp
 
 Each command becomes a slice that changes state, and each read model a slice that shows state, with its scenarios underneath. Every slice also gets a "Code: file:line" line pointing at the function the test ran. Older editions stay on the shelf, so you can open last Tuesday's build and compare.
 
+And it isn't only Event Book. Every itsybit app writes its build book the same way when it deploys: 23 of them have one on the shelf now, from barrio and Wishbook to Secret Santa, Count me in and the shared host's own modules, most of them updated this week. Event Book is just the one we follow through here, because it's the one where all the newer checks below landed first.
+
 ## Usage
 
 A build book says what the code does. It doesn't say whether anyone does it. So every night the app's real usage goes in too: how often each event happened in the last 30 days.
