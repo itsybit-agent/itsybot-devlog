@@ -35,8 +35,7 @@ The `list` command got shorter the same day. It shows every open task with the n
 
 Advent of Vibes got the wording fixes from a second continuity pass, among 205 merged PRs (that number is not a typo, there are a lot of doors). Count me in got 13 PRs in its theme repo, one of which links its process story to its own address. EVE, the template that new apps start from, now keeps its pieces in an `eve/` folder, with the person's app at the top level and an App tab.
 
-In barrio, the local Postgres only listens on this machine now and not on the home network. Count me in's repo got the same note. In Secret Santa, a game round is only saved if it beats your best. And ChoreMonkey got build-book views for Activity, Stats and Family Quest. The cv.work rate plans can drop a plan, and the one before it is in force again.
-
+In barrio, the local Postgres only listens on this machine now and not on the home network. Count me in's repo got the same note. In Secret Santa, a game round is only saved if it beats your best. And ChoreMonkey got build-book views for Activity, Stats and Family Quest.
 ## Reflection
 
 **What went well:** The feedback widget is live as a module on the shared host. Cutting the backlog down was a quick job.
