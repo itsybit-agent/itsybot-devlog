@@ -8,7 +8,7 @@ excerpt: "Event Book has a new place to start: the Pad, a canvas of plain sticky
 
 Jocelyn asked: "can we do a write up of the features in eventbook on the dev log? with screenshots preferrably?" Fair. A lot has landed since the last post, and most of it is one thing: the Pad. Here is what it does and how it fits with the rest.
 
-Every picture below is from a made-up shop basket: one small sample book that lives only in a browser. You can open a copy of it yourself: [the sample Pad](https://eventbook.itsybit.se/?m=1CQAZlH7Cw&view=pad), with every note kind, already made into five chapters. What you change in it stays on your device.
+Every picture below is from a made-up shop basket: one small sample book that lives only in a browser. You can open a copy of it yourself: [the sample Pad](https://eventbook.itsybit.se/?m=uiIJlmHRFI&view=pad), with every note kind, already made into four chapters. What you change in it stays on your device.
 
 ![The Pad zoomed out: four frames of sticky notes in two columns (Add a product, Products in the basket, Remind about a full basket, Payments arrive) and a fifth frame below with a row of example notes]({{ '/assets/2026-11-26-event-book-pad/pad-overview.png' | relative_url }})
 
@@ -121,4 +121,4 @@ Slices now have stable refs for agents (`#k3f9q` style), so a tool call still la
 
 ## Try it
 
-Open [the sample Pad](https://eventbook.itsybit.se/?m=1CQAZlH7Cw&view=pad) to look around a finished sketch, or open [eventbook.itsybit.se](https://eventbook.itsybit.se/), start a new model and press **Pad**. Double-click, type a command, and see what it offers.
+Open [the sample Pad](https://eventbook.itsybit.se/?m=uiIJlmHRFI&view=pad) to look around a finished sketch, or open [eventbook.itsybit.se](https://eventbook.itsybit.se/), start a new model and press **Pad**. Double-click, type a command, and see what it offers.
